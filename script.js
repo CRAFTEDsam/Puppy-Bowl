@@ -2,7 +2,7 @@ const playerContainer = document.getElementById('all-players-container');
 const newPlayerFormContainer = document.getElementById('new-player-form');
 
 // Add your cohort name to the cohortName variable below, replacing the 'COHORT-NAME' placeholder
-const cohortName = 'YOUR COHORT NAME HERE';
+const cohortName = '2308-FTB-MT-WEB-PT';
 // Use the APIURL variable for fetch requests
 const APIURL = `https://fsa-puppy-bowl.herokuapp.com/api/${cohortName}/`;
 
@@ -12,7 +12,11 @@ const APIURL = `https://fsa-puppy-bowl.herokuapp.com/api/${cohortName}/`;
  */
 const fetchAllPlayers = async () => {
     try {
-
+const response = await fetch(`${APIURL}/players`);
+if (response.ok) {
+    const result = await response.json();
+    return result.data.players
+}
     } catch (err) {
         console.error('Uh oh, trouble fetching players!', err);
     }
@@ -20,7 +24,12 @@ const fetchAllPlayers = async () => {
 
 const fetchSinglePlayer = async (playerId) => {
     try {
-
+playerContainer.innerHTML;
+const response = await fetch(`${APIURL}/players/${playerId}`);
+if (response.ok) {
+    const playerData = await response.json ();
+    return playerData.data.playerId;
+}
     } catch (err) {
         console.error(`Oh no, trouble fetching player #${playerId}!`, err);
     }
@@ -28,7 +37,16 @@ const fetchSinglePlayer = async (playerId) => {
 
 const addNewPlayer = async (playerObj) => {
     try {
-
+const response = await fetch (`${APIURL}players`,{ 
+method: "POST",
+headers: {
+"content-Type": "application/json"
+},
+body: JSON.stringify(playerObj)});
+if (response.ok) {
+    const players = await fetchAllPlayers();
+    renderAllPlayers(players);
+}
     } catch (err) {
         console.error('Oops, something went wrong with adding that player!', err);
     }
@@ -36,7 +54,13 @@ const addNewPlayer = async (playerObj) => {
 
 const removePlayer = async (playerId) => {
     try {
-
+        const response = await fetch (`${APIURL}players/${playerId}`, {
+            method: "DELETE", 
+        });
+        if (response.ok) {
+            const players = await fetchAllPlayers();
+            renderAllPlayers(players);
+        }
     } catch (err) {
         console.error(
             `Whoops, trouble removing player #${playerId} from the roster!`,
@@ -67,7 +91,53 @@ const removePlayer = async (playerId) => {
  */
 const renderAllPlayers = (playerList) => {
     try {
-        
+        const playerContainer = document.getElementById("all-players-container");
+        let playerContainerHTML = ("");
+
+playerList.forEach((player) => {
+    playerContainerHTML += `<div class="container">
+    <div class="player-card">
+    <h2>${player.name}</h2>
+    <img class = "player-image" src="${player.imageUrl}" alt="${player.name}">
+    <div class="player-details"></div>
+    <button class="details-button" data-player-id="${player.id}">See Details</button>
+    <button class="remove-button" data-player-id="${player.id}">Remove from Lineup</button>
+    </div>
+    </div>`;
+});
+
+
+playerContainer.innerHTML=playerContainerHTML;
+
+
+const detailsButtons = document.querySelectorAll(".details-button");
+const removeButtons = document.querySelectorAll(".remove-button");
+const playerDetails = document.querySelectorAll(".player-details");
+
+
+
+detailsButtons.forEach((button, index) => {
+    button.addEventListener("click", () => {
+        if (playerDetails[index].innerHTML==="") {
+            playerDetails[index].innerHTML = `<p>breed:${playerList[index].breed}</p><p>status:${playerList[index].status}</p><p>team-id:${playerList[index].teamId}</p><p>cohort-id:${playerList[index].cohortId}</p>`;
+        } else{
+            playerDetails[index].innerHTML = "";
+        }
+    });
+});
+
+removeButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+        const playerId = button.getAttribute("data-player-id");
+        const playerInfo = document.querySelector(
+            `player-id[data-player-id="${playerId}]`
+        );
+        removePlayer(playerId);
+    });
+});
+    
+       
+
     } catch (err) {
         console.error('Uh oh, trouble rendering players!', err);
     }
